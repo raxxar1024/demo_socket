@@ -10,7 +10,7 @@
 //定义程序中使用的常量
 #define SERVER_ADDRESS "127.0.0.1" //服务器端IP地址
 #define PORT           5150         //服务器的端口号
-#define MSGSIZE        1024         //收发缓冲区的大小
+#define MSGSIZE ((1024*256+2048+4)*2)       //发缓冲区的大小
 //#pragma comment(lib, "ws2_32.lib")
 
 int main()
@@ -45,8 +45,14 @@ int main()
         printf("Send:");
         //从键盘输入
         gets(szMessage); //The gets() functionreads characters from stdin and loads them into szMessage
-        // 发送数据
-        send(sClient, szMessage, strlen(szMessage), 0); //sClient指明用哪个连接发送； szMessage指明待发送数据的保存地址 ；strlen(szMessage)指明数据长度
+        if(0==strcmp(szMessage,"1")){
+            // 按1后发送数据
+            int i = 0;
+            for(i=0;i<6;i++){
+                send(sClient, szMessage, MSGSIZE, 0); //sClient指明用哪个连接发送； szMessage指明待发送数据的保存地址 ；strlen(szMessage)指明数据长度
+                Sleep(10);
+            }
+        }
     }
 
     // 释放连接和进行结束工作
