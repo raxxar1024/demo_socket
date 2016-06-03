@@ -42,7 +42,7 @@ int main()
             ntohs(client.sin_port));
 
     while (TRUE) {
-        int index = 0;
+        //int index = 0;
         int index2 = 0;
         int cmd_len = 0;
         int sock_err = 0;
@@ -56,7 +56,13 @@ int main()
                 break;
             }
 
-            cmd_len = *(unsigned int*)(szMessage);
+            if(szMessage[0]!=0x61 && szMessage[0]!=0x01){
+                printf("Received [%d bytes], start is 0x%02x 0x%02x\n", ret, 
+                    szMessage[0], szMessage[0]);
+                break;
+            }
+
+            cmd_len = *(unsigned int*)(szMessage+2);
             if(cmd_len>ret){
                 index2 = ret;
                 memcpy(cmd_buf, szMessage, ret);
@@ -69,34 +75,34 @@ int main()
                 printf("Received 1 [%d bytes]\n", cmd_len);
                 
             }
-            
-            if(ret == MSGSIZE){
-                if(cmd_len < ret){
-                    memcpy(cmd_buf, szMessage, cmd_len);
-                    //process_UI cmd_buf
-                    printf("Received 2 [%d bytes]\n", cmd_len);
-                    index = cmd_len;
-                    int cmd_len2 = *(unsigned int*)(szMessage+index);
-                    index2 = MSGSIZE-index;
-                    while(cmd_len2 > index2){
-                        ret = recv(sClient, szMessage, cmd_len2-index2, 0);
-                        memcpy(cmd_buf+index2, szMessage, ret);
-                        index2+=ret;
+            else{
+                if(ret == MSGSIZE){
+                    if(cmd_len < ret){
+                        memcpy(cmd_buf, szMessage, cmd_len);
+                        //process_UI cmd_buf
+                        printf("Received 2 [%d bytes]\n", cmd_len);
+						memcpy(cmd_buf, szMessage+cmd_len, MSGSIZE-cmd_len);
+                        //index = cmd_len;
+                        int cmd_len2 = *(unsigned int*)(szMessage+cmd_len+2);
+                        index2 = MSGSIZE-cmd_len;
+                        while(cmd_len2 > index2){
+                            ret = recv(sClient, szMessage, cmd_len2-index2, 0);
+                            memcpy(cmd_buf+index2, szMessage, ret);
+                            index2+=ret;
+                        }
+                        //process UI
+                        printf("Received 3 [%d bytes]\n", cmd_len2);
                     }
-                    //process UI
-                    printf("Received 3 [%d bytes]\n", cmd_len2);
-                    
+                    else{
+                        //this is error, cmd_len should not longer than MSGSIZE;
+                        printf("this is error, cmd_len should not longer than MSGSIZE %d;\n", MSGSIZE);
+                    }
+                }else{
+                    //process_UI
+                    printf("Received [%d bytes]\n", ret);
                 }
-                else{
-                    //this is error, cmd_len should not longer than MSGSIZE;
-                    printf("this is error, cmd_len should not longer than MSGSIZE %d;\n", MSGSIZE);
-                }
-            }else{
-                //process_UI
-                printf("Received [%d bytes]\n", ret);
             }
-
-        }
+         }
 
         //char str1[100];
         //sprintf(str1, "Received [%d bytes]\n", all_len);
