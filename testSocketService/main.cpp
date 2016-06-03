@@ -12,6 +12,39 @@
 
 //#pragma comment(lib, "ws2_32.lib")
 
+
+void process_buf(char* buf, int all_len, SOCKET socket)
+{
+    char tmp_buf[MSGSIZE];
+    int ret = 0;
+    if(0 == all_len){
+        return;
+    }
+
+    if(all_len >= 6){
+        int cmd_len = *(unsigned int*)(buf+2);
+        if(cmd_len > all_len){//实际命令长度大于传入的数据长度
+            int index = all_len;
+            memcpy(tmp_buf, buf, all_len);
+            while(cmd_len > index){
+                ret = recv(socket, tmp_buf+index, cmd_len-index, 0);
+                index+=ret;
+            }
+            //process_ui(tmp_buf, index);
+            printf("Received 4 [%d bytes]\n", index);
+        }else{
+            //process_ui(buf, cmd_len);
+            printf("Received 5 [%d bytes]\n", cmd_len);
+            process_buf(buf+cmd_len, all_len-cmd_len, socket);
+        }
+    }
+    else{//不足6个字节，无法获取到命令长度
+        memcpy(tmp_buf, buf, all_len);
+        ret = recv(socket, tmp_buf+all_len, MSGSIZE-all_len, 0);
+        process_buf(tmp_buf, all_len+ret, socket);
+    }
+}
+
 int main()
 {
     WSADATA wsaData;
@@ -56,14 +89,14 @@ int main()
                 break;
             }
 
-            if(szMessage[0]!=0x61 && szMessage[0]!=0x01){
-                printf("Received [%d bytes], start is 0x%02x 0x%02x\n", ret, 
+            if(szMessage[0]!=0x66 && szMessage[0]!=0x01){
+                printf("Received [%d bytes], start is 0x%02x 0x%02x\n", ret,
                     szMessage[0], szMessage[0]);
                 break;
             }
 
             cmd_len = *(unsigned int*)(szMessage+2);
-            if(cmd_len>ret){
+            if(cmd_len>=ret){
                 index2 = ret;
                 memcpy(cmd_buf, szMessage, ret);
                 while(cmd_len > index2){
@@ -77,11 +110,21 @@ int main()
             }
             else{
                 if(ret == MSGSIZE){
+                    memcpy(cmd_buf, szMessage, cmd_len);
+                    //process_UI cmd_buf
+                    printf("Received 2 [%d bytes]\n", cmd_len);
+
+                    //char tmp_buf[MSGSIZE+4];
+                    //memcpy(tmp_buf, szMessage+cmd_len, MSGSIZE-cmd_len);
+                    process_buf(szMessage+cmd_len, MSGSIZE-cmd_len, sClient);
+
+                    //
+                    #if 0
                     if(cmd_len < ret){
                         memcpy(cmd_buf, szMessage, cmd_len);
                         //process_UI cmd_buf
                         printf("Received 2 [%d bytes]\n", cmd_len);
-						memcpy(cmd_buf, szMessage+cmd_len, MSGSIZE-cmd_len);
+                        memcpy(cmd_buf, szMessage+cmd_len, MSGSIZE-cmd_len);
                         //index = cmd_len;
                         int cmd_len2 = *(unsigned int*)(szMessage+cmd_len+2);
                         index2 = MSGSIZE-cmd_len;
@@ -97,6 +140,8 @@ int main()
                         //this is error, cmd_len should not longer than MSGSIZE;
                         printf("this is error, cmd_len should not longer than MSGSIZE %d;\n", MSGSIZE);
                     }
+                    #endif
+                    //
                 }else{
                     //process_UI
                     printf("Received [%d bytes]\n", ret);

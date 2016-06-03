@@ -51,10 +51,10 @@ int main()
             int i = 0;
             for(i=0;i<6;i++){
                 printf("time%d start\n", i);
-                szMessage1[0] = 0x61;
+                szMessage1[0] = 0x66;
                 szMessage1[1] = 0x01;
                 *(unsigned int*)(szMessage1+2) = (MSGSIZE/2);
-                szMessage1[0+(MSGSIZE/2)] = 0x61;
+                szMessage1[0+(MSGSIZE/2)] = 0x66;
                 szMessage1[1+(MSGSIZE/2)] = 0x01;
                 *(unsigned int*)(szMessage1+(MSGSIZE/2)+2) = (MSGSIZE/2);
                 //int j = 0;
@@ -68,7 +68,7 @@ int main()
         }
         if(0==strcmp(szMessage,"2")){
             // 按2后发送100数据
-            szMessage1[0] = 0x61;
+            szMessage1[0] = 0x66;
             szMessage1[1] = 0x01;
             *(unsigned int*)(szMessage1+2) = 100;
             send(sClient, szMessage1, 100, 0); //sClient指明用哪个连接发送； szMessage指明待发送数据的保存地址 ；strlen(szMessage)指明数据长度
