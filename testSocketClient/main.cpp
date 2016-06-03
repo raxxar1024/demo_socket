@@ -22,6 +22,7 @@ int main()
     SOCKADDR_IN server;
     //收发缓冲区
     char szMessage[MSGSIZE];
+    char szMessage1[MSGSIZE];
     //成功接收字节的个数
     //int ret;
 
@@ -49,9 +50,23 @@ int main()
             // 按1后发送数据
             int i = 0;
             for(i=0;i<6;i++){
-                send(sClient, szMessage, MSGSIZE, 0); //sClient指明用哪个连接发送； szMessage指明待发送数据的保存地址 ；strlen(szMessage)指明数据长度
-                Sleep(10);
+                printf("time%d start\n", i);
+                *(unsigned int*)(szMessage1) = (MSGSIZE/2);
+                *(unsigned int*)(szMessage1+(MSGSIZE/2)) = (MSGSIZE/2);
+                //int j = 0;
+                //for(j=0;j<4;j++){
+                //    printf("0x%02x ",szMessage1[j]&0xff);
+                //}
+                printf("time%d end\n", i);
+                send(sClient, szMessage1, MSGSIZE, 0); //sClient指明用哪个连接发送； szMessage指明待发送数据的保存地址 ；strlen(szMessage)指明数据长度
+                //Sleep(10);
             }
+        }
+        if(0==strcmp(szMessage,"2")){
+            // 按2后发送100数据
+            *(unsigned int*)(szMessage1) = 100;
+            send(sClient, szMessage1, 100, 0); //sClient指明用哪个连接发送； szMessage指明待发送数据的保存地址 ；strlen(szMessage)指明数据长度
+            //Sleep(10);
         }
     }
 
